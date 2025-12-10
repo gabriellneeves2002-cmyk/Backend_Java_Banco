@@ -1,0 +1,174 @@
+package True_Pay_Backend.Backend_True_Pay.Service;
+
+import True_Pay_Backend.Backend_True_Pay.Model.DTOS.*;
+import True_Pay_Backend.Backend_True_Pay.Model.Enums.UserRole;
+import True_Pay_Backend.Backend_True_Pay.Model.Usuario;
+import True_Pay_Backend.Backend_True_Pay.Repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class UsuarioService {
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder encoder;
+
+    public void create(UsuarioCreateDTO dto) {
+        Usuario user = new Usuario();
+        user.setNome(dto.getNome());
+        user.setLogin(dto.getLogin());
+        user.setSenha(encoder.encode(dto.getSenha()));
+        usuarioRepository.save(user);
+    }
+
+    public UsuarioByIdDTO findById(Long id){
+       UsuarioByIdDTO usuario = usuarioRepository.findUsuarioById(id).orElseThrow(() ->
+               new UsernameNotFoundException("Usuário não encontrado"));
+       return usuario;
+    }
+
+    public List<Usuario> findAll(){
+        return usuarioRepository.findAll();
+    }
+
+    public List<UsuarioAllDTO> findAllDTO() {
+       return usuarioRepository.findAllUsuariosDTO();
+    }
+
+    public UsuarioMenuResponseDto findByUsuarioMenuId(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authenticatedUsername = authentication.getName();
+
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("Usuário não encontrado"));
+
+        if (!usuario.getLogin().equals(authenticatedUsername)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar este usuário.");
+        }
+
+        UsuarioMenuResponseDto resposta = new UsuarioMenuResponseDto(usuario);
+        return resposta;
+    }
+
+    public BigDecimal findSaldoUsuario(Long id) {
+      return usuarioRepository.findSalodoByid(id);
+    }
+
+    public String  findChavePixAtual(Long id) {
+        return usuarioRepository.findChavePixById(id);
+    }
+
+    public UsuarioChavesDTO findChavesPix(Long id) {
+        return usuarioRepository.findUsuarioChavesById(id);
+    }
+
+    public void  updateChave(ChaveUpdateDTO dto){
+        Usuario usuario = usuarioRepository.findById(dto.getId()).orElseThrow(() ->new RuntimeException("Usuario nao encontrado"));
+        usuario.setChavePix(dto.getChave());
+        usuarioRepository.save(usuario);
+    }
+
+    public boolean verificarSenhaTransferencia(Long userId) {
+        return usuarioRepository.hasSenhaTransferencia(userId);
+    }
+
+    public void salvarSenhaTransferencia(UsuarioSenhaTransacaoDTO dto){
+
+        if (!dto.getSenha().equals(dto.getSenhaConfirm())){
+            throw new RuntimeException("As senhas nao conferem");
+        }
+
+        Usuario usuario = usuarioRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("Usuario Nao encontrado"));
+
+        String hashedSenha = encoder.encode(dto.getSenha());
+        usuario.setSenhaTransferencia(hashedSenha);
+
+        usuarioRepository.save(usuario);
+    }
+
+    public void update(Long id, UsuarioUpdateDTO dto){
+
+        Usuario usuarioDoBanco = usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuario Nao encontrado"));
+        validatePassword(dto);
+        verificarAlteracaoCpfOuLogin(dto, usuarioDoBanco, id);
+        Usuario newUser = preencheUsuarioEntity(dto, usuarioDoBanco);
+        usuarioRepository.save(newUser);
+
+    }
+
+    private Usuario preencheUsuarioEntity(UsuarioUpdateDTO usuarioRequest, Usuario usuario) {
+        usuario.setNome(usuarioRequest.getNome());
+        usuario.setLogin(usuarioRequest.getLogin().toLowerCase());
+        if (usuarioRequest.getSenha()!=null) {
+            usuario.setSenha(encoder.encode(usuarioRequest.getSenha()));
+        }
+        if (usuarioRequest.getCargo()!=null && !usuarioRequest.getCargo().isEmpty()) {
+            if (usuarioRequest.getCargo().equals("CLIENTE")) {
+                usuario.setCargo(UserRole.CLIENTE);
+            } else {
+                usuario.setCargo(UserRole.FUNCIONARIO);
+            }
+        }
+        usuario.setCpf(usuarioRequest.getCpf());
+        usuario.setCelular(usuarioRequest.getCelular());
+        return usuario;
+    }
+
+    public void validatePassword (UsuarioUpdateDTO dto){
+         if (dto.getSenha() != null && !dto.getSenha().isEmpty()) {
+             if (!dto.getSenha().equals(dto.getSenha2())) {
+                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "As senhas nao coincidem");
+             }
+         }
+    }
+
+    private void verificarAlteracaoCpfOuLogin (UsuarioUpdateDTO dto, Usuario usuarioExistente, Long id){
+         if (!usuarioExistente.getCpf().equals(dto.getCpf())
+                 || !usuarioExistente.getLogin().equals(dto.getLogin())) {
+               this.validarDuplicidadeCpfELogin(dto, id);
+         }
+    }
+
+    private void validarDuplicidadeCpfELogin (UsuarioUpdateDTO dto, Long idAtual) {
+        Optional<UserDetails> usuarioMesmoLogin = usuarioRepository.findByLogin(dto.getLogin().toLowerCase());
+         if (usuarioMesmoLogin.isPresent()) {
+             Usuario usuario = (Usuario) usuarioMesmoLogin.get();
+             if (!usuario.getId().equals(idAtual)) {
+                 throw new DataIntegrityViolationException("E-mail já cadastrado no sistema.");
+             }
+         }
+
+        Optional<UserDetails> usuarioMesmoCpf = usuarioRepository.findByCpf(dto.getCpf());
+         if (usuarioMesmoCpf.isPresent()) {
+             Usuario usuario = (Usuario) usuarioMesmoCpf.get();
+             if (!usuario.getId().equals(idAtual)) {
+                 throw new DataIntegrityViolationException("CPF já cadastrado no sistema.");
+             }
+         }
+    }
+
+    public void deleteUser (Long id){
+       Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+       usuarioRepository.delete(usuario);
+    }
+
+
+}
