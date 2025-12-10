@@ -1,0 +1,21 @@
+package True_Pay_Backend.Backend_True_Pay.Controller;
+
+import True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioCreateDTO;
+import True_Pay_Backend.Backend_True_Pay.Service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/usuario")
+public class UsuarioController {
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody UsuarioCreateDTO usuario){
+       usuarioService.create(usuario);
+       return ResponseEntity.ok().build();
+    }
+}
