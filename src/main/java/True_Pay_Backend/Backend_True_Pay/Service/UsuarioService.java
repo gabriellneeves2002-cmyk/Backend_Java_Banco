@@ -170,5 +170,7 @@ public class UsuarioService {
        usuarioRepository.delete(usuario);
     }
 
-
+   public Optional<UsuarioAllByIdDTO> buscarPorId (Long id){
+        return usuarioRepository.findUsuarioAllById(id);
+   }
 }
