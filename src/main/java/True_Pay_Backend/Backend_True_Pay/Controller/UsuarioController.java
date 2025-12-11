@@ -18,4 +18,14 @@ public class UsuarioController {
        usuarioService.create(usuario);
        return ResponseEntity.ok().build();
     }
+
+    @GetMapping
+    public ResponseEntity<?> findAll(){
+       return ResponseEntity.ok(usuarioService.findAll());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> findAllDTO (){
+      return ResponseEntity.ok(usuarioService.findAll());
+    }
 }
