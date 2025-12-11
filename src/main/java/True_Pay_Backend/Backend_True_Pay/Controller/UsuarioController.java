@@ -1,7 +1,8 @@
 package True_Pay_Backend.Backend_True_Pay.Controller;
 
-import True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioCreateDTO;
+import True_Pay_Backend.Backend_True_Pay.Model.DTOS.*;
 import True_Pay_Backend.Backend_True_Pay.Service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,5 +28,67 @@ public class UsuarioController {
     @GetMapping("/all")
     public ResponseEntity<?> findAllDTO (){
       return ResponseEntity.ok(usuarioService.findAll());
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<?> findById(@PathVariable Long id) {
+       return ResponseEntity.ok(usuarioService.findById(id));
+    }
+
+    @GetMapping(value = "/menu/{id}")
+    public ResponseEntity<?> findByUsuarioMenuId(@PathVariable Long id){
+       return ResponseEntity.ok(usuarioService.findByUsuarioMenuId(id));
+    }
+
+    @GetMapping(value = "/saldo/{id}")
+    public ResponseEntity<?> findSaldoUsuario(@PathVariable Long id){
+       return ResponseEntity.ok(usuarioService.findSaldoUsuario(id));
+    }
+
+    @GetMapping(value = "/chaveAtual/{id}")
+    public ResponseEntity<?> findChaveAtualPix(@PathVariable Long id){
+        return ResponseEntity.ok(usuarioService.findChavePixAtual(id));
+    }
+
+    @GetMapping(value = "/chaves/{id}")
+    public ResponseEntity<?> findChavesPix(@PathVariable Long id){
+        return ResponseEntity.ok(usuarioService.findChavesPix(id));
+    }
+
+    @PutMapping(value = "/updateChave")
+    public ResponseEntity<?> updateChave(@RequestBody ChaveUpdateDTO chaveUpdateDTO){
+       usuarioService.updateChave(chaveUpdateDTO);
+       return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/senha-transferencia/{id}")
+    public ResponseEntity<Boolean> verificarSenhaTransferencia(@PathVariable Long id){
+        return ResponseEntity.ok(usuarioService.verificarSenhaTransferencia(id));
+    }
+
+    @PostMapping("/senha-transferencia")
+    public ResponseEntity<?> salvarSenhaTransferencia(@RequestBody @Valid UsuarioSenhaTransacaoDTO dto){
+        usuarioService.salvarSenhaTransferencia(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id,
+                                    @RequestBody UsuarioUpdateDTO usuarioRequest){
+
+        usuarioService.update(id, usuarioRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id){
+        usuarioService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<UsuarioAllByIdDTO> buscarDetalhesPorId(@PathVariable Long id){
+        return usuarioService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
