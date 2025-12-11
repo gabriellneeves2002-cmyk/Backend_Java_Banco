@@ -38,4 +38,9 @@ public class UsuarioController {
     public ResponseEntity<?> findByUsuarioMenuId(@PathVariable Long id){
        return ResponseEntity.ok(usuarioService.findByUsuarioMenuId(id));
     }
+
+    @GetMapping(value = "/saldo/{id}")
+    public ResponseEntity<?> findSaldoUsuario(@PathVariable Long id){
+       return ResponseEntity.ok(usuarioService.findSaldoUsuario(id));
+    }
 }
