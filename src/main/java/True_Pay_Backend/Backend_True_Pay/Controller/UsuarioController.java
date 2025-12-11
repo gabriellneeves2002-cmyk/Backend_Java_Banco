@@ -23,4 +23,9 @@ public class UsuarioController {
     public ResponseEntity<?> findAll(){
        return ResponseEntity.ok(usuarioService.findAll());
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> findAllDTO (){
+      return ResponseEntity.ok(usuarioService.findAll());
+    }
 }
