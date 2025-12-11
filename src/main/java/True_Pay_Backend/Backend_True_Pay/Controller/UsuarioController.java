@@ -33,4 +33,9 @@ public class UsuarioController {
     public ResponseEntity<?> findById(@PathVariable Long id) {
        return ResponseEntity.ok(usuarioService.findById(id));
     }
+
+    @GetMapping(value = "/menu/{id}")
+    public ResponseEntity<?> findByUsuarioMenuId(@PathVariable Long id){
+       return ResponseEntity.ok(usuarioService.findByUsuarioMenuId(id));
+    }
 }
