@@ -24,31 +24,31 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
     @Query("SELECT u.saldo FROM Usuario u WHERE u.id = :id")
     BigDecimal findSalodoByid(@Param("id") long id);
 
-    @Query("SELECT u.chavePix FROM  Usuario u WHERE u.id = :id")
+    @Query("SELECT u.chavePix FROM Usuario u WHERE u.id = :id")
     String findChavePixById(@Param("id") long id);
 
     @Query("SELECT u.chavePix FROM Usuario u WHERE u.id = :id")
     String findChavesPixById(@Param("id") Long id);
 
-    @Query("SELECT new com.utfpr.trustpay.model.dtos.UsuarioChavesDTO(u.cpf, u.login, u.celular)" +
-            "From Usuario u WHERE u.id =:id")
+    @Query("SELECT new True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioChavesDTO(u.cpf, u.login, u.celular) " +
+            "FROM Usuario u WHERE u.id = :id")
     UsuarioChavesDTO findUsuarioChavesById(@Param("id") Long id);
 
     Optional<Usuario> findByChavePix(String chavePix);
 
-    @Query("SELECT CASE WHEN u.senhaTransfericia IS NULL OR u.senhaTransferencia = '' THEN false ELSE true END" +
-           "FROM Usuario u WHERE u.id = :id")
+    @Query("SELECT CASE WHEN u.senhaTransferencia IS NULL OR u.senhaTransferencia = '' THEN false ELSE true END " +
+            "FROM Usuario u WHERE u.id = :id")
     boolean hasSenhaTransferencia(@Param("id") Long id);
 
-    @Query("SELECT new com.utfpr.trustpay.model.dtos.UsuarioByIdDTO(u.nome, u.login, u.cpf, u.celular) " +
+    @Query("SELECT new True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioByIdDTO(u.nome, u.login, u.cpf, u.celular) " +
             "FROM Usuario u WHERE u.id = :id")
     Optional<UsuarioByIdDTO> findUsuarioById(@Param("id") Long id);
 
-    @Query("SELECT new com.utfpr.trustpay.model.dtos.UsuarioAllDTO(u.id, u.nome, u.login, u.cpf, u.celular) " +
+    @Query("SELECT new True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioAllDTO(u.id, u.nome, u.login, u.cpf, u.celular) " +
             "FROM Usuario u")
     List<UsuarioAllDTO> findAllUsuariosDTO();
 
-    @Query("SELECT new com.utfpr.trustpay.model.dtos.UsuarioAllByIdDTO(" +
+    @Query("SELECT new True_Pay_Backend.Backend_True_Pay.Model.DTOS.UsuarioAllByIdDTO(" +
             "u.id, u.nome, u.login, u.cpf, u.celular, u.cargo) " +
             "FROM Usuario u WHERE u.id = :id")
     Optional<UsuarioAllByIdDTO> findUsuarioAllById(@Param("id") Long id);

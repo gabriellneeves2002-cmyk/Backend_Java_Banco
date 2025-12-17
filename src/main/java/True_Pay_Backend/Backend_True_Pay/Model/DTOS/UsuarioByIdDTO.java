@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioByIdDTO {
-    private String name;
+    private String nome;
     private String login;
     private String cpf;
     private String celular;
